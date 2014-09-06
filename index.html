@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+<title>js13k The Elemental Quest</title>
+<style>
+
+body,html,canvas,#o,#k,#l{
+	margin:0;
+	width: 100%;
+	height: 100%;
+	color: #fff;
+	overflow: hidden;
+	font-size: 1.5vw;
+}
+#K{background-color:rgba(0,0,0,0.5);padding-bottom: 100%}
+#X{background-color:#fff;color:#000;overflow:hidden;display:block;}
+#o{position: absolute;left:0;top:0;text-align:center;}
+#a,#b,#c{position: absolute;bottom: 10px;right: 10px;}
+#c{left: 10px}
+#b{top: 20px;width: 60%;text-align: center;padding: 0px 20%;}
+a{cursor:pointer;font-size: 32px; display:inline-block;padding: 5px; background-color: #fff; color:#000;}
+p{width: 50%;margin:auto; padding: 5%}
+h1,h2{font-size: 6vw;font-weight: normal;margin:0}
+h1{font-size: 3vw; padding-top: 50px;}
+#d{width: 25%;border: 1px solid #888; display:inline-block}
+#l{background-color:#000; text-align: center;font-size: 3vw;position: absolute; top: 0px;left: 0px;}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="800" height="500"></canvas>
+<div id='b'><span id='M'></span></div>
+<div id='a'>  <span id='Z'>0</span>/4 Elements Found</div>
+<div id='c'>Light: <span id="d"><span id='X'>100%</span></span></div>
+<div id='o'>
+<div id='K'>
+<h1>Johnny Smiter 13th Knight:</h1>
+<h2>The Elemental Quest</h2>
+<p>Demons from the Shadow Realm are once again attacking the land of Krull. They have stolen the 4 elements, Earth, Air, Fire and Water and returned to the Shadow Realm. Without these elements Krull will descend into hell. Your quest is to take the portal to the Shadow Realm, find the elements and return to Krull. Light is a rare thing within the Shadow Realm and you will need to find all four elements before your torch dies and all hope is lost.</p>
+<a id='P'>Begin Quest</a>
+<p><b>Instructions:</b><br>WASD + Click and Drag, spacebar to jump, F5 to restart</p>
+</div>
+</div>
+<div id="l">Loading</div>
+			   
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision highp float;
+    
+
+    varying vec3 vNormal;
+    varying vec3 vCoord;
+    uniform float dist;
+    uniform float mat;
+    uniform float flash;
+    uniform float time;
+    uniform sampler2D texture1;
+    uniform sampler2D texture2;
+    uniform mat4 uMVMatrix;
+    uniform vec3 cameraPos;
+    uniform vec3 nearestLight;
+    
+
+    void main(void) {
+	if(dist==1.0){
+		gl_FragColor=vec4(gl_FragCoord.z/gl_FragCoord.w*.1,(normalize(vNormal)+1.)*.5);
+	}else{
+		vec2 coord=vCoord.xz;
+		if(abs(vNormal.z)>=.707) coord=vCoord.xy;
+		if(abs(vNormal.x)>=.707) coord=vCoord.yz;
+
+		vec3 tex=vec3(1.);
+		
+		{{Textures}}
+		
+		if(mat==100.) tex=vec3(1.,abs(cos(time*0.002))*vec2(.3,.1))*10.;
+
+		vec3 pos=vCoord-cameraPos+vec3(uMVMatrix[0].z,uMVMatrix[1].z,1.)*-.5;
+		vec3 element=vCoord-nearestLight;
+		float glow=clamp(dot(-normalize(element),normalize(vNormal))/pow(length(element),3.),0.,0.7)*flash*abs(cos(time*0.002));
+		float light=dot(-normalize(pos),normalize(vNormal))/(.1*pow(length(pos),2.)+.5);
+		float spotSize=dot(-normalize(vec3(uMVMatrix[0].z,uMVMatrix[1].z,uMVMatrix[2].z+.3)),normalize(pos));
+		spotSize=clamp(spotSize-0.91,0.,1.)*150.*flash;
+		
+		if(mat==100.) glow=0.;
+		light=spotSize*light;
+		gl_FragColor=vec4(vec3(clamp(light,0.,1.)*tex+glow),1.0);
+	}
+    }
+</script>
+
+
+
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec3 aVertexNormal;
+    
+    uniform mat4 uPMatrix;
+    uniform mat4 uMVMatrix;
+    uniform float dist;
+    uniform float mat;
+    uniform float time;
+    
+    varying vec3 vNormal;
+    varying vec3 vCoord;
+    
+	float rand(vec2 co){
+		return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453)+.3;
+	} 
+    
+    void main(void) {
+	vNormal=aVertexNormal.xyz;
+	vCoord=aVertexPosition.xyz;
+	vec3 a=vec3(.0,.0,.0);
+	if(mat==100.) a=vec3(sin(time*.003*rand(vCoord.xy)),sin(time*.003*rand(vCoord.yx)),sin(time*.003*rand(vCoord.zy))*2.)*.05;
+	if(mat==3.) a=vec3(sin(time*.003*rand(vCoord.xy)),sin(time*.003*rand(vCoord.yx)),sin(time*.003*rand(vCoord.zy))*2.)*.03;
+	gl_Position =  uPMatrix * uMVMatrix * vec4(aVertexPosition+a, 1.0);
+    }
+</script>
+
+
+<script type="text/javascript" src="glrenderer.js"></script>
+<script type="text/javascript" src="csg.js"></script>
+<script type="text/javascript" src="textures.js"></script>
+<script type="text/javascript" src="sounds.js"></script>
+<script type="text/javascript" src="game.js"></script>
+
+</body>
+</html>

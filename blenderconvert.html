@@ -1,0 +1,165 @@
+<html>
+<head>
+<title>Converter</title>
+</head>
+<body>
+
+<textarea id="a1" style="width: 400px; height: 200px;"></textarea><br />
+<input type="button" value="convert" id="button"><br />
+<textarea id="a2" style="width: 400px; height: 200px;"></textarea>
+
+<script>
+var act=2;
+function formatNumber(number){
+	var val=parseFloat(number).toFixed(act);
+	while(val[val.length-1]=="0") val=val.substr(0,val.length-1);
+	if(val[val.length-1]==".") val=val.substr(0,val.length-1);
+	if(val.substr(0,2)=="0.") val=val.substr(1);
+	if(val.substr(0,2)=="-0") val='-'+val.substr(2);
+	if(val==0) val='';
+	if(val=='-') val='';
+	return val;
+}
+
+function convert(){
+	var input=eval(document.getElementById("a1").value);
+	var index={};
+	for(var i=0;i<input.length;i++){
+		index[input[i].name]=input[i];
+	};
+	var output=[];
+	var order=function(output,object){
+		if(object.modifiers){
+			for(var i=0;i<object.modifiers.length;i++){
+				if(object.modifiers[i].object){
+					order(output, index[object.modifiers[i].object]);
+				}
+			}
+		}
+		if(object.object) order(output, index[object.object]);
+		if(output.indexOf(object)==-1) output.push(object);
+	};
+	for(var i=0;i<input.length;i++){
+		order(output, input[i]);
+	}
+	var encoded=[];
+	for(var i=0;i<output.length;i++){
+		var s='';
+		var o=output[i];
+		var type=0;
+		switch(o.name.substr(0,2)){
+			case 'Cu':
+				s+=o.render?'B':'b'; 
+				type=0;
+				break;
+			case 'Cy':
+				s+=o.render?'C':'c'; 
+				type=1;
+				break;
+			case 'Sp':
+				s+=o.render?'O':'o'; 
+				type=2;
+				break;
+			case 'Em':
+				s+=o.render?'E':'e'; 
+				s+=output.indexOf(index[o.object]);
+				type=3;
+				break;
+		}
+		if(o.scale[0]!=0 || o.scale[1]!=0 || o.scale[2]!=0){
+			s+='S'+formatNumber(o.scale[0])+','+formatNumber(o.scale[1])+','+formatNumber(o.scale[2]);
+		}
+		if(o.rotation[0]!=0 || o.rotation[1]!=0 || o.rotation[2]!=0){
+			s+='R'+formatNumber(o.rotation[0])+','+formatNumber(o.rotation[1])+','+formatNumber(o.rotation[2])+','+formatNumber(o.rotation[3]);
+		}
+		if(o.location[0]!=0 || o.location[1]!=0 || o.location[2]!=0){
+			s+='T'+formatNumber(o.location[0])+','+formatNumber(o.location[1])+','+formatNumber(o.location[2]);
+		}
+		if(o.modifiers){
+			for(var j=0;j<o.modifiers.length;j++){
+				var m=o.modifiers[j];
+				switch(m.type){
+					case "BOOLEAN":
+						switch(m.operation){
+							case "DIFFERENCE":
+								s+="D"
+								break;
+							case "UNION":
+								s+="U"
+								break;
+							case "INTERSECT":
+								s+="I"
+								break;
+						}
+						s+=output.indexOf(index[m.object]);
+						break;
+					case "ARRAY":
+						var x=o.rotation[0],y=o.rotation[1],z=o.rotation[2],w=o.rotation[3];
+						var x2=x*x,y2=y*y,z2=z*z
+						var m1=1-2*y2-2*z2, m2=2*x*y-2*z*w,m3=2*x*z+2*y*w;
+						var m4=2*x*y+2*z*w, m5=1-2*x2-2*z2, m6=2*y*z-2*x*w;
+						var m7=2*x*z-2*y*w, m8=2*y*z+2*x*w, m9=1-2*x2-2*y2;
+						var x1=m.offset[0]*o.scale[0],y1=m.offset[1]*o.scale[1],z1=m.offset[2]*o.scale[2];
+
+						x=x1*m1+y1*m2+z1*m3;
+						y=x1*m4+y1*m5+z1*m6;
+						z=x1*m7+y1*m8+z1*m9;
+						s+="A"+formatNumber(x)+","+formatNumber(y)+","+formatNumber(z)+","+m.count;
+						break;
+				}
+			}
+		}
+		if(o.material && o.material.substr(9)!='' && o.material.substr(9)!='000'){
+			console.log('M',o.material.substr(9));
+			s+='M'+formatNumber(o.material.substr(9));
+		}
+		encoded.push(s);
+	}
+	document.getElementById("a2").value=encoded.join("|");
+	console.log(encoded);
+};
+document.getElementById("button").onmousedown=convert;
+
+var testparse='bS1.8,7.21,2.493T-0.026,,1.13|bS1.091,7.336,1.091T-3.502,,.139|bS6.5,1.102,1.102T.144,-5.191,.077|cS1.8,2.493,7.38R1.571,,T-0.026,,3.622U0|cS1.091,1.091,8.031R1.571,,T-3.502,,1.23U1A3.2,,,2|cS1.102,1.102,6.424R1.571,,-1.571T.144,-5.191,1.179U2A-1.25,,,5|bS1.191,-11.667,.985T-3.302,-0.771,3.634A2.75,,,2|bS5.898,.614,.467T-0.042,-5.08,3.768|cS.614,.467,6.521R1.571,,-1.571T-0.042,-5.08,4.235U7A-1.5,,,6|BS5.135,6.168,3.793T-0.056,-0.241,2.997D3D4D5D6D8|BS.161,.161,.161T-1.839,-5.595,2.745A11.25,,,2A,5,,8';
+
+var bits={B:'CSG.cube',C:'CSG.cylinder',S:'CSG.sphere',U:'union',D:'subtract',I:'intersect',T:'translate',S:'scale',A:'array'};
+function parseParams(params){
+	if(params=='') return [];
+	var arr=params.split(",");
+	var i=arr.length;
+	while(i-->-1){
+		arr[i]=parseFloat(arr[i]);
+		arr[i]=arr[i]?arr[i]:0;
+	}
+	return arr;
+}
+function parseCSG(s){
+	var o=s.split('|');
+	var ob=[];
+	for(var i=0;i<o.length;i++){
+		var s='';
+		var u=o[i];
+		var l=0;
+		var x=null,y=null,z='';
+		while(l<u.length){
+			x=bits[u[l].toUpperCase()];
+			if(x){
+				if(y) s+='.'+y+'('+parseParams(z).join(',')+')';
+				y=x;
+				z=''
+			}else{
+				z+=u[l];
+			}
+			l++;
+		}
+		s+='.'+y+'('+parseParams(z).join(',')+')';
+		u.parse=s;
+		console.log(s);
+		ob.push(s);
+	}
+}
+
+parseCSG(testparse);
+</script>
+</body>
+</html>
