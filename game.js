@@ -305,7 +305,7 @@ var drag=false;
 
 // Sets the draging to true if we have pointer lock
 document.onpointerlockchange=document.onwebkitpointerlockchange=document.onmozpointerlockchange=function(e){
-	drag=!drag;
+	drag=document.pointerLockElement!=null|document.mozPointerLockElement!=null|document.webkitPointerLockElement!=null;
 };
 
 // incase we don't have pointer lock let the user use left click and drag

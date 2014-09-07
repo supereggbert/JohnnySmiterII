@@ -178,7 +178,6 @@ CSG.prototype = {
     scale: function(x, y, z) {
         var polygons = this.polygons;
         var newPolygons = [];
-        console.log(this);
         for (var i = 0; i < polygons.length; i++) {
             for (var n = 0; n < polygons[i].vertices.length; n++) {
                 polygons[i].vertices[n].pos.x *= x;
@@ -837,7 +836,6 @@ var parseCSG = function(s) {
         os.push(obj);
     }
     o = [];
-    console.log(os);
     for (i = 0; i < os.length; i++)
         if (os[i].v) o.push(os[i].toMesh());
     return o;
