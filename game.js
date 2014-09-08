@@ -39,7 +39,6 @@ for(i=0;i<meshes.length;i++){
 
 // Compile the shader program
 var fs=document.getElementById("shader-fs").innerHTML;
-fs=fs.replace('{{Textures}}',''+shaderMats()+'');
 var program = new GLProgram(gl, document.getElementById("shader-vs").innerHTML, fs);
 
 // Default Camera Projection

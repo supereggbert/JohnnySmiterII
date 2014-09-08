@@ -94,7 +94,7 @@ else if(mat==6.0) tex=mix(texture2D(texture2,coord*.5+time*.0001).bbb,texture2D(
 		spotSize=clamp(spotSize-0.91,0.,1.)*150.*flash;
 		
 		if(mat==100.) glow=0.;
-		light=spotSize*light;
+		light=spotSize*light*2.;
 		gl_FragColor=vec4(vec3(clamp(light,0.,1.)*tex+glow),1.0);
 	}
     }
