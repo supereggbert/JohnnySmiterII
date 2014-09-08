@@ -99,7 +99,7 @@ function merge(a,b,e){
 	c[1].putImageData(d,0,0);
 	return c;
 };
-
+/*
 // Function to optimise the generation of shader code for the different textures
 var shaderMats=function(){
 	var coord=function(x,y){return 'coord*vec2('+x.toFixed(5)+','+y.toFixed(5)+')'}; // Set cords
@@ -146,13 +146,15 @@ var shaderMats=function(){
 	
 	return mats([
 		material(concreat,concreat,concreat,concreat,floor,floor),
-		material(wood,wood,wood,wood,wood,wood),
-		material(pannelwood,pannelwood,pannelwood,pannelwood,pannelwood,pannelwood),
+		//material(wood,wood,wood,wood,wood,wood),
+		wood+";",
+		pannelwood+";",
 		black,
-		material(rooftile,rooftile,rooftile,rooftile,rooftile,rooftile),
+		rooftile+";",
 		'tex='+water+';',
-		material(portal,portal,portal,portal,portal,portal),
-		material(pannelwood,pannelwood,pannelwood,pannelwood,pannelwood,pannelwood)
+		portal+";",
+		pannelwood+";"
 	]);
 };
-
+shaderMats();
+*/
