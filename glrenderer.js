@@ -140,7 +140,7 @@ var GLProgram=function(gl,vShader,fShader){
  */
 GLProgram.prototype.createShader=function(gl, src, type) {
 	var shader = gl.createShader( type );
-	console.log(src);
+
 	gl.shaderSource( shader, src );
 	gl.compileShader( shader );
   	/*if ( !gl.getShaderParameter( shader, gl.COMPILE_STATUS ) ) {
